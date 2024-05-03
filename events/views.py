@@ -6,6 +6,28 @@ import jwt
 from django.conf import settings
 from rest_framework.exceptions import AuthenticationFailed
 from users.models import User
+from django.core.mail import send_mail
+from datetime import datetime
+from django.http import JsonResponse
+from django.db.models import Q
+
+
+def send_registration_email(user, event):
+    """
+    Sends an email to `user` notifying them of their registration to `event`.
+    """
+    subject = 'Event Registration Confirmation'
+    message = f'Hi {user.first_name},\n\nYou have successfully registered for {event.title}. We look forward to seeing you there!\n\nBest regards,\nEvent Management Team'
+    email_from = settings.EMAIL_HOST_USER
+    recipient_list = [user.email]
+
+    send_mail(
+        subject,
+        message,
+        email_from,
+        recipient_list,
+        fail_silently=False,
+    )
 
 
 def get_user_from_token(request):
@@ -25,6 +47,34 @@ def get_user_from_token(request):
     return user
 
 
+def api_search_events(request):
+    query = request.GET.get('query', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    events = Event.objects.all()
+
+    if query:
+        events = events.filter(Q(title__icontains=query) | Q(description__icontains=query))
+
+    if date_from:
+        try:
+            date_from = datetime.strptime(date_from, '%Y-%m-%d')
+            events = events.filter(date__gte=date_from)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid date format for "date_from". Please use YYYY-MM-DD format.'}, status=400)
+
+    if date_to:
+        try:
+            date_to = datetime.strptime(date_to, '%Y-%m-%d')
+            events = events.filter(date__lte=date_to)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid date format for "date_to". Please use YYYY-MM-DD format.'}, status=400)
+
+    data = list(events.values('title', 'description', 'date', 'location'))
+    return JsonResponse(data, safe=False)
+
+
 class EventView(APIView):
     def get(self, request, pk=None):
         if pk:
@@ -42,7 +92,6 @@ class EventView(APIView):
         except AuthenticationFailed as e:
             return Response({'error': str(e)})
         request.data['organizer'] = user.pk
-        # event = request.data.get('event')
         serializer = EventSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             event_saved = serializer.save()
