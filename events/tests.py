@@ -32,16 +32,25 @@ class EventViewTests(APITestCase):
 
 
     def test_get_event_list(self):
+        """
+        Ensure we can retrieve a list of all events.
+        """
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['events']), 1)
 
     def test_get_event_detail(self):
+        """
+        Ensure we can retrieve a single event by pk.
+        """
         response = self.client.get(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['event']['title'], 'Test Event')
 
     def test_create_event(self):
+        """
+        Ensure we can create a new event.
+        """
         data = {'title': 'New Event',
                 'description': 'New Event Description',
                 'location': 'New Event Location',
@@ -51,6 +60,9 @@ class EventViewTests(APITestCase):
         self.assertEqual(Event.objects.count(), 2)
 
     def test_update_event(self):
+        """
+        Ensure we can update an existing event.
+        """
         data = {'title': 'Updated Event'}
         response = self.client.put(self.detail_url, data, format='json', cookies=self.token)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -58,6 +70,9 @@ class EventViewTests(APITestCase):
         self.assertEqual(self.event.title, 'Updated Event')
 
     def test_delete_event(self):
+        """
+        Ensure we can delete an event.
+        """
         data = {'name': 'newuser', 'email': 'login@example.com', 'password': 'loginpassword'}
         self.client.post(self.login_url, data)
 

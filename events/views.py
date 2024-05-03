@@ -15,6 +15,7 @@ from django.db.models import Q
 def send_registration_email(user, event):
     """
     Sends an email to `user` notifying them of their registration to `event`.
+    Not using this function in code.
     """
     subject = 'Event Registration Confirmation'
     message = f'Hi {user.first_name},\n\nYou have successfully registered for {event.title}. We look forward to seeing you there!\n\nBest regards,\nEvent Management Team'
@@ -31,6 +32,9 @@ def send_registration_email(user, event):
 
 
 def get_user_from_token(request):
+    """
+    Extracts the user from the JWT token in the request's cookies.
+    """
     token = request.COOKIES.get('jwt')
     if not token:
         raise AuthenticationFailed('Unauthenticated!')
@@ -48,6 +52,9 @@ def get_user_from_token(request):
 
 
 def api_search_events(request):
+    """
+    Searches for events based on the query, date_from, and date_to parameters.
+    """
     query = request.GET.get('query', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
@@ -76,6 +83,9 @@ def api_search_events(request):
 
 
 class EventView(APIView):
+    """
+    A view that handles GET, POST, PUT, and DELETE requests for events.
+    """
     def get(self, request, pk=None):
         if pk:
             event = Event.objects.get(pk=pk)
@@ -127,6 +137,9 @@ class EventView(APIView):
 
 
 class RegisterForEventView(APIView):
+    """
+    A view that handles POST and DELETE requests for registering/unregistering for events.
+    """
     def post(self, request, pk):
         try:
             user = get_user_from_token(request)

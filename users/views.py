@@ -9,6 +9,9 @@ import jwt, datetime
 
 
 class UserView(APIView):
+    """
+    A class-based view to handle creating, updating and deleting users.
+    """
     def get(self, request, pk=None):
         if pk:
             user = User.objects.get(pk=pk)
@@ -39,6 +42,9 @@ class UserView(APIView):
 
 
 class LoginView(APIView):
+    """
+    A class-based view to handle user login.
+    """
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -62,6 +68,9 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+    """
+    A class-based view to handle user logout.
+    """
     def post(self, request):
         response = Response()
         response.delete_cookie('jwt')
